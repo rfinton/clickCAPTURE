@@ -17,7 +17,7 @@ function readCookie(name) {
 	return null;
 }
 
-function runThis(c, d, base){
+function runThis(c, d, base) {
 	var cookie = readCookie(c);
 	var purl = autoParse('purl');
 	var ifrm = document.createElement("IFRAME");
@@ -25,17 +25,17 @@ function runThis(c, d, base){
 
 	if (purl && !cookie) {
 		document.cookie = c + "=" + purl + "; domain=" + base + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
-		ifrm.setAttribute("src", location.protocol + "//" + d + "/" + purl + "/tracker.html?source=init");
+		ifrm.setAttribute("src", location.protocol + "//" + d + "/" + purl + "/tracker.html?source=" + location.hostname + location.pathname);
 	} else if (cookie) {
-		ifrm.setAttribute("src", location.protocol + "//" + d + "/" + cookie + "/tracker.html?source=tattoo");
+		ifrm.setAttribute("src", location.protocol + "//" + d + "/" + cookie + "/tracker.html?source=" + location.hostname + location.pathname);
 	} else {
 		return;
 	}
 	document.body.appendChild(ifrm);
 }
 
-function cbEndpoint(str){
-	var referrer = autoParse('source'); //returns source from query string
+function cbEndpoint(str, purl) {
+	var referrer = autoParse('source').toLowerCase(); //returns source from query string
 	var callBack = "https://studio.afw.mdl.io/api/OutboundApp/AppCallbackForm?serviceTypeId=2019";
 	var url = callBack + str;
 	var d = new Date();
@@ -43,10 +43,12 @@ function cbEndpoint(str){
 	var content;
 	var xhttp = new XMLHttpRequest();
 
-	if (referrer !== "init") {
-		content = "eventid=201913&date="+date+"&eventoption="+referrer;
+	if (referrer.search(purl.toLowerCase()) == -1) {
+		content = "eventid=201913&date=" + date + "&eventoption=" + referrer;
+		console.log('this is not a microsite');
 	} else {
-		content = "eventid=201912&date="+date+"&eventoption=SetCookie";
+		content = "eventid=201912&date=" + date + "&eventoption=SetCookie";
+		console.log('this is a microsite');
 	}
 
 	xhttp.open("POST", url, true);
@@ -56,7 +58,7 @@ function cbEndpoint(str){
 
 function setCK(purl, baseURL){
 	ifrm = document.createElement("IFRAME");
-	ifrm.setAttribute("src", baseURL + "?purl=" + purl);
+	ifrm.setAttribute("src", "http://" + purl + baseURL + "?purl=" + purl);
 	ifrm.style.display = "none";
 	document.body.appendChild(ifrm);
 }
